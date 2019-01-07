@@ -2,9 +2,9 @@
 
 namespace Woody\Http\Message;
 
+use GuzzleHttp\Cookie\SetCookie;
 use Psr\Http\Message\ResponseInterface;
 use Swoole\Http\Response as SwooleResponse;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Class Response
@@ -21,12 +21,26 @@ class Response
     public static function send(ResponseInterface $response, SwooleResponse $swooleResponse): void
     {
         $swooleResponse->status($response->getStatusCode());
-        $headers = $response->getHeaders();
+        $cookies = $response->getHeader('set-cookie');
+        $headers = $response->withoutHeader('set-cookie')->getHeaders();
 
         foreach ($headers as $name => $values) {
             foreach ($values as $value) {
                 $swooleResponse->header($name, $value);
             }
+        }
+
+        foreach ($cookies as $value) {
+            $cookie = SetCookie::fromString($value);
+            $swooleResponse->rawcookie(
+                $cookie->getName(),
+                $cookie->getValue(),
+                $cookie->getExpires(),
+                $cookie->getPath(),
+                $cookie->getDomain(),
+                $cookie->getSecure(),
+                $cookie->getHttpOnly()
+            );
         }
 
         // Rewind cursor.

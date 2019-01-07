@@ -4,6 +4,7 @@ namespace Woody\Http\Message;
 
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class RequestServer
@@ -28,10 +29,11 @@ class ServerRequest
         }
 
         $protocolVersion = str_replace('HTTP/', '', $swooleRequest->server['server_protocol']) ?: '1.1';
+        $uri = static::getUriFromRequest($swooleRequest);
 
         $request = new \GuzzleHttp\Psr7\ServerRequest(
             $swooleRequest->server['request_method'],
-            $swooleRequest->server['request_uri'],
+            $uri,
             $swooleRequest->header,
             $swooleRequest->rawcontent(),
             $protocolVersion,
@@ -42,7 +44,7 @@ class ServerRequest
         $post = $swooleRequest->post ?? [];
         $cookie = $swooleRequest->cookie ?? [];
         $files = $swooleRequest->files ?? [];
-        $server = static::extractServerAttributes($swooleRequest);
+        $server = static::extractServerAttributes($swooleRequest, $uri);
 
         $request = $request
             ->withCookieParams($cookie)
@@ -61,10 +63,8 @@ class ServerRequest
      *
      * @return array
      */
-    private static function extractServerAttributes(\Swoole\Http\Request $swoole): array
+    private static function extractServerAttributes(\Swoole\Http\Request $swoole, UriInterface $uri): array
     {
-        $uri = static::getUriFromRequest($swoole);
-
         $server = array_change_key_case($swoole->server, CASE_UPPER);
         $server += [
             'DOCUMENT_ROOT' => DOCUMENT_ROOT,
@@ -91,10 +91,10 @@ class ServerRequest
     private static function getUriFromRequest(\Swoole\Http\Request $swoole): Uri
     {
         $url = sprintf(
-            'http://%s%s?%s',
+            'http://%s%s%s',
             $swoole->header['host'],
             $swoole->server['request_uri'],
-            $swoole->server['query_string'] ?? ''
+            !empty($swoole->server['query_string']) ? '?'.$swoole->server['query_string'] : ''
         );
 
         return new Uri($url);
