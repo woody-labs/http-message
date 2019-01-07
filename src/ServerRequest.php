@@ -11,7 +11,7 @@ use Psr\Http\Message\UriInterface;
  *
  * @package Woody\Http\Message
  */
-class ServerRequest
+class ServerRequest extends \GuzzleHttp\Psr7\ServerRequest
 {
 
     /**
@@ -31,7 +31,7 @@ class ServerRequest
         $protocolVersion = str_replace('HTTP/', '', $swooleRequest->server['server_protocol']) ?: '1.1';
         $uri = static::getUriFromRequest($swooleRequest);
 
-        $request = new \GuzzleHttp\Psr7\ServerRequest(
+        $request = new static(
             $swooleRequest->server['request_method'],
             $uri,
             $swooleRequest->header,
@@ -50,7 +50,7 @@ class ServerRequest
             ->withCookieParams($cookie)
             ->withQueryParams($get)
             ->withParsedBody($post)
-            ->withUploadedFiles(\GuzzleHttp\Psr7\ServerRequest::normalizeFiles($files));
+            ->withUploadedFiles(static::normalizeFiles($files));
 
         // For global compatibility.
         static::fillGlobals($get, $post, $cookie, $files, $server);

@@ -11,7 +11,7 @@ use Swoole\Http\Response as SwooleResponse;
  *
  * @package Woody\Http\Message
  */
-class Response
+class Response extends \GuzzleHttp\Psr7\Response
 {
 
     /**
