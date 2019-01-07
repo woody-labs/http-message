@@ -2,14 +2,14 @@
 
 Implements [PSR-7](https://www.php-fig.org/psr/psr-7/) PHP Standard.
 
-This library creates a bridge between Swoole and PSR-7 implementation.
-
 
 ## Presentation
 
-Both **Swoole** and **Symfony** for `request` and `response` do not implement PSR-7 which is required to work with PSR-15.
+Both **Swoole** and **Symfony**, for `request` and `response` objects, do not implement PSR-7 which is required to work with PSR-15.
 
-Only **Guzzle**  implements it correctly
+Only **Guzzle**  implements it correctly.
+
+This library creates a bridge between Swoole and PSR-7 implementation.
 
 
 ## Implementation
