@@ -1,4 +1,6 @@
 /.idea/
+/coverage/
 /vendor/
 /composer.phar
 /composer.lock
+/test*.php

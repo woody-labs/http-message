@@ -22,56 +22,23 @@ include 'vendor/autoload.php';
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
-use Woody\Http\Message\ServerRequest;
+use Woody\Http\Message\ServerRequestFactory;
+use Woody\Http\Message\ResponseSender;
+
+$serverRequestFactory = new ServerRequestFactory();
+$responseSender = new ResponseSender();
 
 $server = new Server('0.0.0.0', 9501);
+$server->on('request', function (Request $swooleRequest, Response $swooleResponse) use ($serverRequestFactory, $responseSender) {
 
-$server->on('request', function (Request $swooleRequest, Response $swooleResponse) {
-
-    $request = ServerRequest::createFromSwoole($swooleRequest);
+    $request = $serverRequestFactory->create($swooleRequest);
 
     // ...
-    $response = new \Woody\Http\Message\Response(200, [], 'Hello World');
+    $response = new \Zend\Diactoros\Response\HtmlResponse('Hello World', 200);
     $response = $response->withHeader('Server', 'My Server Name');
     // ...
 
-    \Woody\Http\Message\Response::send($response, $swooleResponse);
+    $responseSender->send($response, $swooleResponse);
 });
-
-$server->start();
-````
-
-
-### Swoole and Middleware
-
-````php
-include 'vendor/autoload.php';
-
-use Swoole\Http\Request;
-use Swoole\Http\Response;
-use Swoole\Http\Server;
-use Woody\Http\Message\ServerRequest;
-use Woody\Http\Server\Middleware\Dispatcher;
-
-$server = new Server('0.0.0.0', 9501);
-
-$server->on('request', function (Request $swooleRequest, Response $swooleResponse) {
-
-    $request = ServerRequest::createFromSwoole($swooleRequest);
-
-    $dispatcher = new Dispatcher();
-    $dispatcher->pipe(new LogMiddleware());
-    $dispatcher->pipe(function($request, $dispatcher) {
-        $response = new \Woody\Http\Message\Response(200, [], 'Hello World');
-        $response = $response->withHeader('Server', 'My Server Name');
-        
-        return $response;
-    });
-
-    $response = $dispatcher->handle($request);
-
-    \Woody\Http\Message\Response::send($response, $swooleResponse);
-});
-
 $server->start();
 ````
